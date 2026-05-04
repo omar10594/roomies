@@ -1,0 +1,10 @@
+{
+  "dialect": "turso",
+  "schema": "./src/lib/db/schema.ts",
+  "dbCredentials": {
+    "url": "${TURSO_DATABASE_URL}",
+    "authToken": "${TURSO_DATABASE_TURSO_AUTH_TOKEN}"
+  },
+  "verbose": true,
+  "strict": true
+}

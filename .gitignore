@@ -35,6 +35,9 @@ AGENTS.md
 .stoneforge
 .design
 
+# TypeScript
+tsconfig.tsbuildinfo
+
 # OS
 .DS_Store
 Thumbs.db
