@@ -24,14 +24,15 @@ build/
 *.swo
 *~
 
-# OpenCode
+# AI
 .opencode/
 .agents/
 PROJECT_INSTRUCTIONS.md
 PROJECT.md
-
-# Opencode config (has API key)
 opencode.json
+AGENTS.md
+.codex
+.stoneforge
 
 # OS
 .DS_Store
@@ -41,3 +42,4 @@ Thumbs.db
 drizzle/
 *.db
 *.db-journal
+/.stoneforge/.worktrees/
