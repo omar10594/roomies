@@ -1,0 +1,34 @@
+{
+  "name": "roomies",
+  "image": "mcr.microsoft.com/devcontainers/universal:linux",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/opencode:1": {}
+  },
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js Dev Server"
+    }
+  },
+  "postCreateCommand": "npm install -g @openai/codex && npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode-remote.remote-containers",
+        "openai.chatgpt"
+      ],
+      "settings": {
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  }
+}
