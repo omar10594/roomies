@@ -12,7 +12,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/seeds/index.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "kill": "pkill -f 'next dev' || pkill -f 'next start' || echo 'No Next.js server found'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

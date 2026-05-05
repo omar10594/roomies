@@ -7,6 +7,8 @@ export const roomies = sqliteTable("roomies", {
   slug: text("slug").notNull().unique(),
   rentAmount: integer("rent_amount").notNull(),
   rentDay: integer("rent_day").notNull(),
+  startDate: text("start_date"),
+  graceDays: integer("grace_days").notNull().default(5),
   isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(),
   accessCode: text("access_code"),
   createdAt: text("created_at")

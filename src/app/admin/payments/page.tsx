@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPayments, recordPaymentAction, getRoomies } from "@/app/actions/data";
+import { getPayments, recordPaymentAction, updatePaymentAction, deletePaymentAction, getRoomies } from "@/app/actions/data";
 import { formatCurrency } from "@/lib/utils";
 import type { Roomie } from "@/lib/db/schema";
 import { Button } from "@/components/ui/button";
@@ -20,14 +20,16 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Plus, CreditCard, DollarSign, Calendar, CheckCircle2, XCircle, Receipt } from "lucide-react";
+import { Plus, CreditCard, DollarSign, Calendar, CheckCircle2, XCircle, Receipt, Pencil, Trash2, Check, X } from "lucide-react";
 
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<any[]>([]);
   const [roomies, setRoomies] = useState<Roomie[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<any | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -51,6 +53,22 @@ export default function PaymentsPage() {
       await loadData();
       setTimeout(() => setSuccess(null), 3000);
     }
+  }
+
+  async function handleUpdate(formData: FormData) {
+    const result = await updatePaymentAction(null, formData);
+    if (result?.success) {
+      setSuccess("Pago actualizado correctamente");
+      setEditingPayment(null);
+      await loadData();
+      setTimeout(() => setSuccess(null), 3000);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    await deletePaymentAction(id);
+    setDeleteConfirm(null);
+    await loadData();
   }
 
   return (
@@ -101,6 +119,7 @@ export default function PaymentsPage() {
                     <TableHead className="text-muted-foreground font-bold">Monto</TableHead>
                     <TableHead className="text-muted-foreground font-bold">Fecha</TableHead>
                     <TableHead className="text-muted-foreground font-bold hidden md:table-cell">Nota</TableHead>
+                    <TableHead className="text-muted-foreground font-bold w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -110,6 +129,47 @@ export default function PaymentsPage() {
                       <TableCell className="font-bold text-[#003633]">{formatCurrency(p.payment.amount)}</TableCell>
                       <TableCell className="text-muted-foreground">{new Date(p.payment.date).toLocaleDateString("es-MX")}</TableCell>
                       <TableCell className="text-muted-foreground max-w-[200px] truncate">{p.payment.note || "-"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setEditingPayment(p)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          {deleteConfirm === p.payment.id ? (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-[#047857]"
+                                onClick={() => handleDelete(p.payment.id)}
+                              >
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => setDeleteConfirm(null)}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-[#ba1a1a]"
+                              onClick={() => setDeleteConfirm(p.payment.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -171,6 +231,7 @@ export default function PaymentsPage() {
               <Input
                 id="note"
                 name="note"
+                defaultValue="Pago de renta"
                 placeholder="Ej: Pago de renta - Septiembre"
               />
             </div>
@@ -179,6 +240,74 @@ export default function PaymentsPage() {
                 Cancelar
               </Button>
               <Button type="submit">Registrar</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Payment Dialog */}
+      <Dialog open={!!editingPayment} onOpenChange={(open) => { if (!open) setEditingPayment(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5 text-[#003633]" />
+              Editar Pago
+            </DialogTitle>
+            <DialogDescription>
+              Actualiza los datos del pago.
+            </DialogDescription>
+          </DialogHeader>
+          <form action={handleUpdate} className="space-y-4">
+            <input type="hidden" name="id" value={editingPayment?.payment.id} />
+            <div className="space-y-2">
+              <Label htmlFor="edit-roomieId">Roomie</Label>
+              <Select name="roomieId" defaultValue={editingPayment?.payment.roomieId} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar roomie..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {roomies.filter(r => r.isActive).map((r) => (
+                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-amount">Monto (MXN)</Label>
+              <Input
+                id="edit-amount"
+                name="amount"
+                type="number"
+                step="0.01"
+                defaultValue={editingPayment ? editingPayment.payment.amount / 100 : ""}
+                placeholder="6500"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-date">Fecha</Label>
+              <Input
+                id="edit-date"
+                name="date"
+                type="date"
+                defaultValue={editingPayment?.payment.date}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-note">Nota (opcional)</Label>
+              <Input
+                id="edit-note"
+                name="note"
+                defaultValue={editingPayment?.payment.note || ""}
+                placeholder="Ej: Pago de renta - Septiembre"
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditingPayment(null)}>
+                Cancelar
+              </Button>
+              <Button type="submit">Guardar Cambios</Button>
             </DialogFooter>
           </form>
         </DialogContent>

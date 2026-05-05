@@ -161,12 +161,18 @@ export default async function DashboardPage() {
                       </Avatar>
                       <div>
                         <p className="text-[15px] font-bold">{roomie.name}</p>
-                        <p className="text-[13px] text-muted-foreground">/{roomie.slug}</p>
+                        <p className="text-[13px] text-muted-foreground">
+                          {roomie.hasAtrasado
+                            ? `Atrasado: ${formatCurrency(roomie.atrasado)}`
+                            : roomie.pendiente > 0
+                              ? `Pendiente: ${formatCurrency(roomie.pendiente)}`
+                              : `/${roomie.slug}`}
+                        </p>
                       </div>
                     </div>
-                    <Badge variant={roomie.isPaid ? "success" : "warning"} className="text-xs gap-1">
+                    <Badge variant={roomie.isPaid ? "success" : "destructive"} className="text-xs gap-1">
                       {roomie.isPaid ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                      {roomie.isPaid ? "Pagado" : "Pendiente"}
+                      {roomie.isPaid ? "Pagado" : "Atrasado"}
                     </Badge>
                   </div>
                 ))}

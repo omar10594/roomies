@@ -254,7 +254,7 @@ export default function RoomiesPage() {
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="rentAmount">Monto de Renta (MXN)</Label>
                 <Input
@@ -278,6 +278,27 @@ export default function RoomiesPage() {
                   defaultValue={editingRoomie?.rentDay}
                   placeholder="5"
                   required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Fecha de Inicio</Label>
+                <Input
+                  id="startDate"
+                  name="startDate"
+                  type="date"
+                  defaultValue={editingRoomie?.startDate || ""}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="graceDays">Días de Gracia</Label>
+                <Input
+                  id="graceDays"
+                  name="graceDays"
+                  type="number"
+                  min="0"
+                  max="30"
+                  defaultValue={editingRoomie?.graceDays ?? 5}
+                  placeholder="5"
                 />
               </div>
             </div>
