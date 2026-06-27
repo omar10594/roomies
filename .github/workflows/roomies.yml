@@ -1,0 +1,144 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+          cache-dependency-path: webapp/pnpm-lock.yaml
+
+      - run: cd webapp && pnpm install --frozen-lockfile
+
+      - name: Run typecheck
+        run: cd webapp && npx tsc --noEmit
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+          cache-dependency-path: webapp/pnpm-lock.yaml
+
+      - run: cd webapp && pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: cd webapp && pnpm run lint
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+          cache-dependency-path: webapp/pnpm-lock.yaml
+
+      - run: cd webapp && pnpm install --frozen-lockfile
+
+      - name: Run vitest
+        run: cd webapp && pnpm test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+          cache-dependency-path: webapp/pnpm-lock.yaml
+
+      - run: cd webapp && pnpm install --frozen-lockfile
+
+      - name: Run Next.js build
+        run: cd webapp && pnpm run build
+
+  landing-check:
+    name: Landing Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+          cache-dependency-path: landing/pnpm-lock.yaml
+
+      - run: cd landing && pnpm install --frozen-lockfile
+
+      - name: Run astro check
+        run: cd landing && pnpm run check
+
+  landing-build:
+    name: Landing Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [landing-check]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+          cache-dependency-path: landing/pnpm-lock.yaml
+
+      - run: cd landing && pnpm install --frozen-lockfile
+
+      - name: Run Astro build
+        run: cd landing && pnpm run build

@@ -1,0 +1,23 @@
+services:
+  webapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: webapp-prod
+    container_name: roomies-webapp
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    restart: unless-stopped
+
+  landing:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: landing-prod
+    container_name: roomies-landing
+    ports:
+      - "8080:80"
+    restart: unless-stopped
