@@ -1,0 +1,15 @@
+/node_modules
+/dist
+/.next
+/.astro
+data/roomies.db
+data/roomies.db-shm
+data/roomies.db-wal
+.env.local
+.vercel
+*.tsbuildinfo
+package-lock.json
+
+# Build artifacts
+coverage/
+
