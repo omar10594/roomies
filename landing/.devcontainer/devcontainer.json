@@ -1,0 +1,20 @@
+{
+  "name": "Roomies Landing",
+  "image": "mcr.microsoft.com/devcontainers/universal:linux",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/opencode:1": {}
+  },
+  "postCreateCommand": "cd /workspaces/roomies/landing && npm install",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  }
+}
