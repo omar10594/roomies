@@ -3,22 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
-import {
-  LayoutDashboard,
-  Users,
-  Home,
-  DollarSign,
-  Sparkles,
-} from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/roommates", label: "Roommates", icon: Users },
-  { href: "/rent", label: "Rent", icon: Home },
-  { href: "/expenses", label: "Expenses", icon: DollarSign },
-  { href: "/chores", label: "Chores", icon: Sparkles },
-];
+import { NAV_ITEMS } from "@/lib/navigation";
 
 function isActive(link: string, pathname: string): boolean {
   if (link === "/") return pathname === "/" || pathname === "";
@@ -53,7 +39,7 @@ export default function MobileBottomNav() {
       )}
       aria-label="Mobile navigation"
     >
-      {navItems.map((item) => {
+      {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActiveTab = isActive(item.href, pathname);
         return (

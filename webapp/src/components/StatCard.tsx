@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   label: string;
@@ -34,11 +35,10 @@ export default function StatCard({
           )}
         </div>
         {trend && (
-          <p
-            className={`mt-2 text-xs font-medium ${
-              trend.positive ? "text-green-600" : "text-red-600"
-            }`}
-          >
+          <p className={cn(
+            "mt-2 text-xs font-medium",
+            trend.positive ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"
+          )}>
             {trend.positive ? "↑" : "↓"} {trend.value}
           </p>
         )}

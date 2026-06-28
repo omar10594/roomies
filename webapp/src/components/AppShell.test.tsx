@@ -66,4 +66,15 @@ describe("AppShell", () => {
     const outerDiv = container.querySelector("div.min-h-screen");
     expect(outerDiv).toBeInTheDocument();
   });
+
+  it("renders MobileBottomNav component", () => {
+    const { container } = render(
+      <AppShell>
+        <div>Test content</div>
+      </AppShell>
+    );
+    // MobileBottomNav renders a nav with aria-label="Mobile navigation"
+    const nav = container.querySelector('[aria-label="Mobile navigation"]');
+    expect(nav).toBeInTheDocument();
+  });
 });

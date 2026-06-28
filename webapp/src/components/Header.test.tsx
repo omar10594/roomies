@@ -44,16 +44,12 @@ describe("Header", () => {
     expect(header).toHaveClass("sticky");
   });
 
-  it("renders MobileBottomNav component", () => {
+  it("renders only the header element (no MobileBottomNav)", () => {
     const { container } = render(<Header />);
-    // MobileBottomNav renders a nav with aria-label="Mobile navigation"
+    const header = container.querySelector("header");
+    expect(header).toBeInTheDocument();
+    // MobileBottomNav is now rendered in AppShell, not Header
     const nav = container.querySelector('[aria-label="Mobile navigation"]');
-    expect(nav).toBeInTheDocument();
-  });
-
-  it("renders all 5 navigation items in MobileBottomNav", () => {
-    const { container } = render(<Header />);
-    const nav = container.querySelector('[aria-label="Mobile navigation"]');
-    expect(nav).toHaveClass("md:hidden");
+    expect(nav).not.toBeInTheDocument();
   });
 });
