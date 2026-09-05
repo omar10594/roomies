@@ -2,9 +2,8 @@
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
@@ -16,26 +15,26 @@ import {
   CheckCircle2,
   Copy,
   Banknote,
-  ChevronLeft,
+  Receipt,
   CircleDollarSign,
   AlertTriangle,
 } from "lucide-react";
-import Link from "next/link";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
+import { getRentSummary } from "@/lib/rent";
+import type { Roomie, Payment, DepositAccount } from "@/lib/db/schema";
 
 export default function RoomieDashboard({
   roomie,
   payments,
   depositAccounts,
 }: {
-  roomie: any;
-  payments: any[];
-  depositAccounts: any[];
+  roomie: Roomie;
+  payments: Payment[];
+  depositAccounts: DepositAccount[];
 }) {
   const today = new Date();
   const now = today.getTime();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth();
 
   const monthNames = [
     "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -47,108 +46,19 @@ export default function RoomieDashboard({
     "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
   ];
 
-  const graceDays = roomie.graceDays ?? 5;
   const rentAmount = roomie.rentAmount;
+  const {
+    periods,
+    pendingPeriods,
+    overduePeriods: atrasadoPeriods,
+    pendiente,
+    atrasado,
+    nextPaymentDate,
+  } = getRentSummary(roomie, payments, today);
+  const hasAtrasado = atrasado > 0;
+  const periodLabel = (period: (typeof periods)[number]) =>
+    `${monthNames[period.month]} ${period.dueDate.getFullYear()}`;
 
-  function getGraceEnd(rentDay: number): Date {
-    return new Date(today.getFullYear(), today.getMonth(), rentDay + graceDays);
-  }
-
-  // Build periods from startDate up to current month (inclusive)
-  // Only show periods that have history or are the current month
-  function getPaymentPeriods() {
-    if (!roomie.startDate) return [];
-
-    const periods: any[] = [];
-    let d = new Date(roomie.startDate);
-
-    while (true) {
-      const dueDate = new Date(d.getFullYear(), d.getMonth(), roomie.rentDay);
-      const graceEnd = new Date(d.getFullYear(), d.getMonth(), roomie.rentDay + graceDays);
-
-      // Stop when we're 2 months in the future
-      const futureMonth = currentYear * 12 + currentMonth;
-      const periodMonth = d.getFullYear() * 12 + d.getMonth();
-      if (periodMonth > futureMonth + 1) break;
-
-      const label = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
-
-      // Get all payments (not filtered by month) for FIFO calculation
-      periods.push({
-        year: d.getFullYear(),
-        month: d.getMonth(),
-        label,
-        dueDate,
-        graceEnd,
-        isPast: graceEnd < today, // grace period has expired
-        isCurrent: d.getMonth() === currentMonth && d.getFullYear() === currentYear,
-        isUpcoming: dueDate > today,
-      });
-
-      d.setMonth(d.getMonth() + 1);
-    }
-
-    // FIFO: payments cover oldest periods first
-    // Total paid so far
-    const allPaid = payments.reduce((sum: number, p: any) => sum + p.amount, 0);
-    const totalExpected = periods.length * rentAmount;
-
-    // How many full periods are covered
-    const fullPeriodsCovered = Math.floor(allPaid / rentAmount);
-    const remainder = allPaid % rentAmount;
-
-    for (let i = 0; i < periods.length; i++) {
-      if (i < fullPeriodsCovered) {
-        periods[i].fifoPaid = rentAmount;
-        periods[i].remaining = 0;
-        periods[i].isFullyPaid = true;
-        periods[i].isPartial = false;
-      } else if (i === fullPeriodsCovered && remainder > 0) {
-        periods[i].fifoPaid = remainder;
-        periods[i].remaining = rentAmount - remainder;
-        periods[i].isFullyPaid = false;
-        periods[i].isPartial = true;
-      } else {
-        periods[i].fifoPaid = 0;
-        periods[i].remaining = rentAmount;
-        periods[i].isFullyPaid = false;
-        periods[i].isPartial = false;
-      }
-    }
-
-    return periods;
-  }
-
-  const periods = getPaymentPeriods();
-
-  // Calculate pendiente: what's due now (past rentDay, including current month)
-  // This is the sum of remaining for all periods where rentDay has passed
-  let pendiente = 0;
-  let pendingPeriods: any[] = [];
-
-  for (const period of periods) {
-    if (period.dueDate <= today && !period.isFullyPaid) {
-      pendiente += period.remaining;
-      pendingPeriods.push(period);
-    }
-  }
-
-  // Calculate atrasado: periods where grace period has expired AND not fully paid
-  let atrasado = 0;
-  let hasAtrasado = false;
-  const atrasadoPeriods: any[] = [];
-
-  for (const period of periods) {
-    if (period.isPast && !period.isFullyPaid) {
-      atrasado += period.remaining;
-      hasAtrasado = true;
-      atrasadoPeriods.push(period);
-    }
-  }
-
-  // Next payment: first upcoming period
-  const nextPeriod = periods.find((p: any) => p.isUpcoming && !p.isFullyPaid);
-  const nextPaymentDate = nextPeriod ? nextPeriod.dueDate : null;
   const daysUntilNext = nextPaymentDate
     ? Math.max(0, Math.ceil((nextPaymentDate.getTime() - now) / (1000 * 60 * 60 * 24)))
     : 0;
@@ -158,17 +68,14 @@ export default function RoomieDashboard({
     ? `${nextPaymentDate.getDate()} de ${monthNamesShort[nextPaymentDate.getMonth()]} ${nextPaymentDate.getFullYear()}`
     : "";
 
-  const activeAccounts = depositAccounts.filter((a: any) => a.isActive);
+  const activeAccounts = depositAccounts.filter((a) => a.isActive);
 
   return (
     <div className="min-h-screen bg-[#f8faf8]">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-[#f8faf8]/90 backdrop-blur-md border-b border-[#bfc8c6]/50">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-[#003633] font-bold text-lg hover:opacity-80 transition-opacity">
-            <ChevronLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">Roomies</span>
-          </Link>
+          <span className="text-primary font-bold text-lg">Roomies</span>
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium hidden md:block">{roomie.name}</span>
             <Avatar className="h-8 w-8">
@@ -200,7 +107,7 @@ export default function RoomieDashboard({
           </p>
           {pendiente > 0 ? (
             <p className="text-sm text-white/60">
-              {pendingPeriods.map((p: any) => p.label).join(", ")}
+              {pendingPeriods.map((p) => periodLabel(p)).join(", ")}
               {pendingPeriods.length > 0 && (
                 <span className="block mt-1">
                   {hasAtrasado
@@ -228,9 +135,9 @@ export default function RoomieDashboard({
                 {formatCurrency(atrasado)}
               </p>
               <div className="space-y-1">
-                {atrasadoPeriods.map((p: any, idx: number) => (
+                {atrasadoPeriods.map((p, idx) => (
                   <div key={idx} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{p.label}</span>
+                    <span className="text-muted-foreground">{periodLabel(p)}</span>
                     <span className="font-semibold text-[#ba1a1a]">
                       {formatCurrency(p.remaining)}
                     </span>
@@ -270,7 +177,7 @@ export default function RoomieDashboard({
           <CardContent className="p-5">
             <h3 className="text-sm font-bold text-[#003633] mb-4 flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
-              Historial de Pagos
+              Estado por periodo
             </h3>
             {periods.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-6">
@@ -278,11 +185,11 @@ export default function RoomieDashboard({
               </p>
             ) : (
               <div className="space-y-0">
-                {periods.map((period: any, idx: number) => {
+                {periods.map((period, idx) => {
                   let statusBadge: "success" | "warning" | "destructive" | "outline" = "outline";
                   let statusLabel = "Próximo";
                   let statusDot = "bg-muted-foreground";
-                  let statusIcon: any = null;
+                  let statusIcon = <CalendarDays className="h-4 w-4" />;
 
                   if (period.isFullyPaid) {
                     statusBadge = "success";
@@ -325,7 +232,7 @@ export default function RoomieDashboard({
                       {/* Content */}
                       <div className="flex-1 flex items-center justify-between py-2.5">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold">{period.label}</span>
+                          <span className="text-sm font-semibold">{periodLabel(period)}</span>
                           <span className="text-xs text-muted-foreground">
                             Vence {period.dueDate.getDate()} de {monthNamesShort[period.month]}
                           </span>
@@ -355,6 +262,48 @@ export default function RoomieDashboard({
           </CardContent>
         </Card>
 
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Receipt className="h-4 w-4" />
+              Historial de pagos
+            </CardTitle>
+            <CardDescription>Pagos recibidos, del más reciente al más antiguo.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {payments.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-6 text-center">
+                Aún no hay pagos registrados.
+              </p>
+            ) : (
+              <Table aria-label="Historial de pagos">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Fecha de pago</TableHead>
+                    <TableHead scope="col" className="text-right">Monto</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell>
+                        <time dateTime={payment.date}>
+                          {new Date(`${payment.date}T00:00:00Z`).toLocaleDateString("es-MX", {
+                            day: "numeric", month: "long", year: "numeric", timeZone: "UTC",
+                          })}
+                        </time>
+                      </TableCell>
+                      <TableCell className="text-right font-semibold whitespace-nowrap">
+                        {formatCurrency(payment.amount)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Deposit Accounts - Full Width */}
         <Card className="mb-6 border-0 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
           <CardContent className="p-5">
@@ -363,7 +312,7 @@ export default function RoomieDashboard({
               Cuentas para Depósito
             </h3>
             <div className="space-y-3">
-              {activeAccounts.map((account: any) => (
+              {activeAccounts.map((account) => (
                 <Card key={account.id} className="border-0 shadow-sm">
                   <CardContent className="p-4 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
@@ -382,6 +331,7 @@ export default function RoomieDashboard({
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 shrink-0"
+                            aria-label={`Copiar CLABE de ${account.label}`}
                             onClick={() => {
                               navigator.clipboard.writeText(account.clabe);
                             }}

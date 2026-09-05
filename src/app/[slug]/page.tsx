@@ -1,17 +1,29 @@
 import { getRoomieBySlug, getPaymentsByRoomie, getDepositAccounts } from "@/app/actions/data";
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { cookies } from "next/headers";
-import CopyButton from "./copy-button";
 import RoomiePinLogin from "./roomie-pin-login";
 import RoomieDashboard from "./roomie-dashboard";
+import { Suspense } from "react";
+import { PageLoading } from "@/components/page-loading";
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+type PublicRoomiePageProps = {
+  readonly params: Promise<{ readonly slug: string }>;
+};
+
+export async function generateMetadata({ params }: PublicRoomiePageProps) {
   const { slug } = await params;
   return { title: `${slug} - Roomies` };
 }
 
-export default async function PublicRoomiePage({ params }: { params: Promise<{ slug: string }> }) {
+export default function PublicRoomiePage({ params }: PublicRoomiePageProps) {
+  return (
+    <Suspense fallback={<PageLoading className="min-h-screen bg-[#f8faf8]" />}>
+      <PublicRoomieContent params={params} />
+    </Suspense>
+  );
+}
+
+async function PublicRoomieContent({ params }: PublicRoomiePageProps) {
   const { slug } = await params;
   const roomie = await getRoomieBySlug(slug);
 

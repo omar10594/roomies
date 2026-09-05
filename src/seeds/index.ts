@@ -2,7 +2,6 @@ import { db } from "../lib/db";
 import { roomies, depositAccounts, payments, settings } from "../lib/db/schema";
 import { generateId, toCents } from "../lib/utils";
 
-const today = new Date();
 const pad = (n: number) => String(n).padStart(2, "0");
 
 function isoDate(year: number, month: number, day: number): string {

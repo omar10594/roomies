@@ -12,10 +12,20 @@ build/
 
 # Environment
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*
+!.env.example
+!.env.*.example
+
+# Local deployment configuration
+.vercel/
+
+# Test reports and caches
+coverage/
+playwright-report/
+test-results/
+.cache/
+.eslintcache
+*.log
 
 # IDE
 .vscode/
@@ -27,6 +37,9 @@ build/
 # AI
 .opencode/
 .agents/
+.cline/
+.omo/
+.codegraph/
 PROJECT_INSTRUCTIONS.md
 PROJECT.md
 opencode.json
@@ -36,14 +49,23 @@ AGENTS.md
 .design
 
 # TypeScript
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Drizzle
-drizzle/
+# Local SQLite databases (keep SQL migrations versioned)
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
 /.stoneforge/.worktrees/

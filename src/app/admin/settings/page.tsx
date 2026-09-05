@@ -9,10 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Settings,
   KeyRound,
   Banknote,
   Plus,
@@ -102,20 +100,20 @@ export default function SettingsPage() {
             <p className="text-xs text-muted-foreground mb-5">
               Este código es necesario para acceder al panel administrativo. Debe tener entre 4 y 6 dígitos.
             </p>
-            <form action={handleAdminCode} className="flex flex-col sm:flex-row gap-3 items-end">
-              <div className="flex-1 space-y-2">
+            <form action={handleAdminCode} className="flex flex-col gap-3 items-end lg:flex-row">
+              <div className="w-full min-w-0 flex-1 space-y-2">
                 <Label htmlFor="newCode">Nuevo Código</Label>
                 <Input
                   id="newCode"
                   name="newCode"
                   type="password"
-                  placeholder="Ingresa un código de 4-6 dígitos"
+                  placeholder="Código de 4-6 dígitos"
                   pattern="[0-9]{4,6}"
                   className="font-mono"
                   required
                 />
               </div>
-              <Button type="submit" className="h-[42px] bg-[#003633] hover:bg-[#003633]/90">
+              <Button type="submit" className="h-[42px] w-full bg-[#003633] hover:bg-[#003633]/90 lg:w-auto">
                 Actualizar
               </Button>
             </form>
@@ -194,6 +192,7 @@ export default function SettingsPage() {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
+                              aria-label={`Copiar CLABE de ${account.label}`}
                               onClick={() => {
                                 navigator.clipboard.writeText(account.clabe.replace(/\s/g, ""));
                               }}
@@ -210,6 +209,7 @@ export default function SettingsPage() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
+                        aria-label={`Editar cuenta ${account.label}`}
                         onClick={() => {
                           setEditingAccount(account);
                           setShowAccountModal(true);
@@ -221,6 +221,7 @@ export default function SettingsPage() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-[#ba1a1a]"
+                        aria-label={`Eliminar cuenta ${account.label}`}
                         onClick={() => handleDeleteAccount(account.id)}
                       >
                         <Trash2 className="h-4 w-4" />

@@ -1,29 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { verifyAdminCode, updateAdminCode } from "@/lib/auth";
-
-export async function verifyCodeAction(formData: FormData) {
-  const code = formData.get("code") as string;
-  const valid = await verifyAdminCode(code);
-  if (!valid) {
-    return { success: false, message: "Código incorrecto" };
-  }
-  const cookieStore = await cookies();
-  cookieStore.set("admin_session", "verified", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24,
-    path: "/",
-  });
-  return { success: true };
-}
-
-export async function logoutAction() {
-  const cookieStore = await cookies();
-  cookieStore.delete("admin_session");
-}
+import { updateAdminCode } from "@/lib/auth";
 
 export async function isAdminAuthenticated(): Promise<boolean> {
   const cookieStore = await cookies();

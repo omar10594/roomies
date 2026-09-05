@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { RoomieLink } from "@/components/admin/roomie-link";
+
+import { useState, useEffect, useRef } from "react";
 import { getPayments, recordPaymentAction, updatePaymentAction, deletePaymentAction, getRoomies } from "@/app/actions/data";
 import { formatCurrency } from "@/lib/utils";
 import type { Roomie } from "@/lib/db/schema";
@@ -17,19 +19,39 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Plus, CreditCard, DollarSign, Calendar, CheckCircle2, XCircle, Receipt, Pencil, Trash2, Check, X } from "lucide-react";
+import { Plus, DollarSign, CheckCircle2, Receipt, Pencil, Trash2, Check, X, ChevronDown } from "lucide-react";
+
+function useSelectRepaint(open: boolean) {
+  const ref = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (!open || !ref.current) return;
+
+    const select = ref.current;
+    select.style.contain = "none";
+    const frame = requestAnimationFrame(() => {
+      select.style.contain = "paint";
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      select.style.contain = "none";
+    };
+  }, [open]);
+
+  return ref;
+}
 
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState<any[]>([]);
+  const [payments, setPayments] = useState<Awaited<ReturnType<typeof getPayments>>>([]);
   const [roomies, setRoomies] = useState<Roomie[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editingPayment, setEditingPayment] = useState<any | null>(null);
+  const [editingPayment, setEditingPayment] = useState<Awaited<ReturnType<typeof getPayments>>[number] | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const registerRoomieSelectRef = useSelectRepaint(showForm);
+  const editRoomieSelectRef = useSelectRepaint(!!editingPayment);
 
   useEffect(() => {
     loadData();
@@ -118,23 +140,30 @@ export default function PaymentsPage() {
                     <TableHead className="text-muted-foreground font-bold">Roomie</TableHead>
                     <TableHead className="text-muted-foreground font-bold">Monto</TableHead>
                     <TableHead className="text-muted-foreground font-bold">Fecha</TableHead>
-                    <TableHead className="text-muted-foreground font-bold hidden md:table-cell">Nota</TableHead>
+                    <TableHead className="hidden font-bold text-muted-foreground lg:table-cell">Nota</TableHead>
                     <TableHead className="text-muted-foreground font-bold w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {payments.map((p) => (
                     <TableRow key={p.payment.id}>
-                      <TableCell className="font-bold">{p.roomieName || "Desconocido"}</TableCell>
+                      <TableCell className="font-bold">
+                        {p.roomieSlug && p.roomieName ? (
+                          <RoomieLink roomie={{ slug: p.roomieSlug, name: p.roomieName }}>
+                            {p.roomieName}
+                          </RoomieLink>
+                        ) : p.roomieName || "Desconocido"}
+                      </TableCell>
                       <TableCell className="font-bold text-[#003633]">{formatCurrency(p.payment.amount)}</TableCell>
                       <TableCell className="text-muted-foreground">{new Date(p.payment.date).toLocaleDateString("es-MX")}</TableCell>
-                      <TableCell className="text-muted-foreground max-w-[200px] truncate">{p.payment.note || "-"}</TableCell>
+                      <TableCell className="hidden max-w-[200px] truncate text-muted-foreground lg:table-cell">{p.payment.note || "-"}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
+                            aria-label={`Editar pago de ${p.roomieName || "roomie desconocido"}`}
                             onClick={() => setEditingPayment(p)}
                           >
                             <Pencil className="h-4 w-4" />
@@ -145,6 +174,7 @@ export default function PaymentsPage() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-[#047857]"
+                                aria-label={`Confirmar eliminación del pago de ${p.roomieName || "roomie desconocido"}`}
                                 onClick={() => handleDelete(p.payment.id)}
                               >
                                 <Check className="h-4 w-4" />
@@ -153,6 +183,7 @@ export default function PaymentsPage() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
+                                aria-label={`Cancelar eliminación del pago de ${p.roomieName || "roomie desconocido"}`}
                                 onClick={() => setDeleteConfirm(null)}
                               >
                                 <X className="h-4 w-4" />
@@ -163,6 +194,7 @@ export default function PaymentsPage() {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-[#ba1a1a]"
+                              aria-label={`Eliminar pago de ${p.roomieName || "roomie desconocido"}`}
                               onClick={() => setDeleteConfirm(p.payment.id)}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -194,16 +226,22 @@ export default function PaymentsPage() {
           <form action={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="roomieId">Roomie</Label>
-              <Select name="roomieId" required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar roomie..." />
-                </SelectTrigger>
-                <SelectContent>
+              <div className="relative">
+                <select
+                  ref={registerRoomieSelectRef}
+                  id="roomieId"
+                  name="roomieId"
+                  className="block h-9 w-full appearance-none rounded-md border border-input bg-transparent px-3 py-2 pr-9 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-inset focus:ring-ring"
+                  defaultValue=""
+                  required
+                >
+                  <option value="" disabled>Seleccionar roomie...</option>
                   {roomies.filter(r => r.isActive).map((r) => (
-                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                    <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
-                </SelectContent>
-              </Select>
+                </select>
+                <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50" />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="amount">Monto (MXN)</Label>
@@ -261,16 +299,21 @@ export default function PaymentsPage() {
             <input type="hidden" name="id" value={editingPayment?.payment.id} />
             <div className="space-y-2">
               <Label htmlFor="edit-roomieId">Roomie</Label>
-              <Select name="roomieId" defaultValue={editingPayment?.payment.roomieId} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar roomie..." />
-                </SelectTrigger>
-                <SelectContent>
+              <div className="relative">
+                <select
+                  ref={editRoomieSelectRef}
+                  id="edit-roomieId"
+                  name="roomieId"
+                  className="block h-9 w-full appearance-none rounded-md border border-input bg-transparent px-3 py-2 pr-9 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-inset focus:ring-ring"
+                  defaultValue={editingPayment?.payment.roomieId}
+                  required
+                >
                   {roomies.filter(r => r.isActive).map((r) => (
-                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                    <option key={r.id} value={r.id}>{r.name}</option>
                   ))}
-                </SelectContent>
-              </Select>
+                </select>
+                <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 opacity-50" />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-amount">Monto (MXN)</Label>

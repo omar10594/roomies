@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserRound } from "lucide-react";
 
 export default function RoomiePinLogin({ slug, name }: { slug: string; name: string }) {
+  const router = useRouter();
   const [digits, setDigits] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -49,6 +51,28 @@ export default function RoomiePinLogin({ slug, name }: { slug: string; name: str
     }
   };
 
+  const handleSubmit = async (formData: FormData) => {
+    setError("");
+    const response = await fetch(`/api/roomies/${encodeURIComponent(slug)}/login`, {
+      method: "POST",
+      body: formData,
+    });
+    const result: unknown = await response.json();
+
+    if (
+      response.ok &&
+      typeof result === "object" &&
+      result !== null &&
+      "success" in result &&
+      result.success === true
+    ) {
+      router.refresh();
+      return;
+    }
+
+    setError("Código incorrecto");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f8faf8] p-4">
       <Card className="w-full max-w-[24rem] border-0 shadow-[0_12px_40px_rgb(0,54,51,0.1)]">
@@ -60,7 +84,7 @@ export default function RoomiePinLogin({ slug, name }: { slug: string; name: str
           <CardDescription className="text-[16px] mt-2">Ingresa tu código de acceso</CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={`/api/roomies/${slug}/login`} method="POST" className="flex flex-col items-center gap-5">
+          <form action={handleSubmit} className="flex flex-col items-center gap-5">
             <input type="hidden" name="code" value={digits.join("")} />
             <div className="flex gap-3">
               {digits.map((digit, index) => (
@@ -70,6 +94,7 @@ export default function RoomiePinLogin({ slug, name }: { slug: string; name: str
                   type="tel"
                   inputMode="numeric"
                   maxLength={1}
+                  aria-label={`Dígito ${index + 1} del código de acceso`}
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}

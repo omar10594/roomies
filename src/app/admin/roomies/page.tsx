@@ -1,5 +1,7 @@
 "use client";
 
+import { RoomieLink } from "@/components/admin/roomie-link";
+
 import { useState, useEffect } from "react";
 import { getRoomies, createRoomieAction, updateRoomieAction, deleteRoomieAction } from "@/app/actions/data";
 import { formatCurrency } from "@/lib/utils";
@@ -140,8 +142,8 @@ export default function RoomiesPage() {
                 roomies.map((roomie) => (
                   <Card key={roomie.id} className="border-0 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,54,51,0.08)] transition-shadow">
                     <CardContent className="p-4">
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
+                        <RoomieLink roomie={roomie} className="flex items-center gap-3 min-w-0">
                           <Avatar className="h-11 w-11">
                             <AvatarFallback className="bg-[#003633] text-white text-sm font-bold">
                               {roomie.name.charAt(0).toUpperCase()}
@@ -151,10 +153,10 @@ export default function RoomiesPage() {
                             <p className="text-sm font-bold truncate">{roomie.name}</p>
                             <p className="text-xs text-muted-foreground">/{roomie.slug}</p>
                           </div>
-                        </div>
+                        </RoomieLink>
 
-                        <div className="flex items-center gap-3 shrink-0">
-                          <div className="text-right hidden sm:block">
+                        <div className="flex w-full items-center gap-2 lg:w-auto lg:shrink-0 lg:gap-3">
+                          <div className="hidden text-right lg:block">
                             <p className="text-sm font-bold text-[#003633]">{formatCurrency(roomie.rentAmount)}</p>
                             <p className="text-xs text-muted-foreground">/mes</p>
                           </div>
@@ -166,11 +168,12 @@ export default function RoomiesPage() {
                             {roomie.accessCode ? "Configurado" : "Pendiente"}
                           </Badge>
 
-                          <div className="flex items-center gap-1">
+                          <div className="ml-auto flex items-center gap-1">
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8"
+                              aria-label={`Editar a ${roomie.name}`}
                               onClick={() => { setEditingRoomie(roomie); setShowModal(true); }}
                             >
                               <Pencil className="h-4 w-4" />
@@ -181,6 +184,7 @@ export default function RoomiesPage() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-[#047857]"
+                                  aria-label={`Confirmar eliminación de ${roomie.name}`}
                                   onClick={() => handleDelete(roomie.id)}
                                 >
                                   <Check className="h-4 w-4" />
@@ -189,6 +193,7 @@ export default function RoomiesPage() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8"
+                                  aria-label={`Cancelar eliminación de ${roomie.name}`}
                                   onClick={() => setDeleteConfirm(null)}
                                 >
                                   <X className="h-4 w-4" />
@@ -199,6 +204,7 @@ export default function RoomiesPage() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-[#ba1a1a]"
+                                aria-label={`Eliminar a ${roomie.name}`}
                                 onClick={() => setDeleteConfirm(roomie.id)}
                               >
                                 <Trash2 className="h-4 w-4" />

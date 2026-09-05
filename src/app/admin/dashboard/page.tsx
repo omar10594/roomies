@@ -1,3 +1,4 @@
+import { RoomieLink } from "@/components/admin/roomie-link";
 import { getDashboardData } from "@/app/actions/data";
 import { formatCurrency } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,14 +20,10 @@ export default async function DashboardPage() {
   const data = await getDashboardData();
   const currentMonth = new Date().toLocaleString("es-MX", { month: "long" });
   const currentYear = new Date().getFullYear();
-  const collectionPercent = data.totalExpected > 0
-    ? Math.round((data.totalCollected / data.totalExpected) * 100)
-    : 0;
-
   const avatarColors = [
     "bg-[#003633] text-white",
     "bg-[#4648d4] text-white",
-    "bg-[#059669] text-white",
+    "bg-[#047857] text-white",
     "bg-[#b45309] text-white",
     "bg-[#7c3aed] text-white",
   ];
@@ -57,45 +54,24 @@ export default async function DashboardPage() {
                 </div>
                 <h3 className="text-[11px] font-bold tracking-[0.15em] uppercase text-white/60">Resumen Financiero</h3>
               </div>
-              <span className="text-[13px] text-white/50 font-medium">
+              <span className="text-[13px] text-white/60 font-medium">
                 {currentMonth} {currentYear}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               <div className="rounded-xl bg-white/10 p-5">
                 <p className="text-[11px] font-bold text-emerald-300 mb-2 uppercase tracking-wider">Total Cobrado</p>
                 <p className="text-[32px] font-bold text-white leading-none">{formatCurrency(data.totalCollected)}</p>
-                <div className="w-full bg-white/10 h-1.5 rounded-full mt-3">
-                  <div
-                    className="bg-emerald-400 h-1.5 rounded-full transition-all"
-                    style={{ width: `${collectionPercent}%` }}
-                  />
-                </div>
               </div>
               <div className="rounded-xl bg-white/10 p-5">
                 <p className="text-[11px] font-bold text-amber-300 mb-2 uppercase tracking-wider">Por Cobrar</p>
                 <p className="text-[32px] font-bold text-white leading-none">{formatCurrency(data.totalPending)}</p>
-                <div className="w-full bg-white/10 h-1.5 rounded-full mt-3">
-                  <div
-                    className="bg-amber-400 h-1.5 rounded-full transition-all"
-                    style={{ width: `${100 - collectionPercent}%` }}
-                  />
-                </div>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-4 border-t border-white/10">
-              <div className="flex items-center gap-3">
-                <span className="text-[14px] text-white/60">
-                  Progreso de cobro:
-                </span>
-                <div className="flex items-center gap-2">
-                  <div className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                  <span className="text-[15px] font-bold text-white">{collectionPercent}%</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 text-[13px] text-white/50">
+              <div className="flex items-center gap-4 text-[13px] text-white/60">
                 <span className="flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5" />
                   {data.activeRoomies} inquilinos
@@ -151,9 +127,9 @@ export default async function DashboardPage() {
                 </Link>
               </div>
               <div className="space-y-4">
-                {data.roomieStatuses.slice(0, 5).map((roomie: any, idx: number) => (
+                {data.roomieStatuses.slice(0, 5).map((roomie, idx) => (
                   <div key={roomie.id} className="flex items-center justify-between">
-                    <div className="flex items-center gap-3.5">
+                    <RoomieLink roomie={roomie} className="flex items-center gap-3.5">
                       <Avatar className="h-11 w-11">
                         <AvatarFallback className={`${avatarColors[idx % avatarColors.length]} text-sm font-bold`}>
                           {roomie.name.charAt(0).toUpperCase()}
@@ -169,7 +145,7 @@ export default async function DashboardPage() {
                               : `/${roomie.slug}`}
                         </p>
                       </div>
-                    </div>
+                    </RoomieLink>
                     <Badge variant={roomie.isPaid ? "success" : "destructive"} className="text-xs gap-1">
                       {roomie.isPaid ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                       {roomie.isPaid ? "Pagado" : "Atrasado"}
@@ -195,7 +171,7 @@ export default async function DashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {data.recentPayments.slice(0, 5).map((payment: any) => (
+                  {data.recentPayments.slice(0, 5).map((payment) => (
                     <div key={payment.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-3.5">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-[#003633]/10">
@@ -221,11 +197,15 @@ export default async function DashboardPage() {
       </div>
 
       {/* FAB */}
-      <Link href="/admin/payments" className="fixed right-5 bottom-5 md:right-6 md:bottom-6 z-50">
-        <Button className="h-14 w-14 rounded-full shadow-lg shadow-[#003633]/20 bg-[#003633] hover:bg-[#003633]/90" size="icon">
+      <Button
+        asChild
+        className="fixed right-5 bottom-5 z-50 h-14 w-14 rounded-full bg-[#003633] shadow-lg shadow-[#003633]/20 hover:bg-[#003633]/90 md:right-6 md:bottom-6"
+        size="icon"
+      >
+        <Link href="/admin/payments" aria-label="Registrar un pago">
           <Plus className="h-6 w-6" />
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </div>
   );
 }

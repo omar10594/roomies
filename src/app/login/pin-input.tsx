@@ -2,29 +2,31 @@
 
 import { useState, useCallback, useRef } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { KeyRound } from "lucide-react";
 
 export default function PinInput() {
+  const router = useRouter();
   const [digits, setDigits] = useState(["", "", "", ""]);
   const [error, setError] = useState("");
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleSubmit = useCallback(async (formData: FormData) => {
     setError("");
-    const code = formData.get("code") as string;
     const res = await fetch("/api/auth/login", {
       method: "POST",
       body: formData,
     });
     const result = await res.json();
     if (result.success) {
-      window.location.href = "/admin/dashboard";
+      router.replace("/admin/dashboard");
+      router.refresh();
     } else {
       setError(result.message || "Código incorrecto");
     }
-  }, []);
+  }, [router]);
 
   const handleChange = (index: number, value: string) => {
     if (value && !/^[0-9]$/.test(value)) return;
@@ -85,6 +87,7 @@ export default function PinInput() {
                   type="tel"
                   inputMode="numeric"
                   maxLength={1}
+                  aria-label={`Dígito ${index + 1} del código de acceso`}
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}

@@ -1,8 +1,18 @@
 import { isAdminAuthenticated } from "@/app/actions/auth";
 import { redirect } from "next/navigation";
 import PinInput from "./pin-input";
+import { Suspense } from "react";
+import { PageLoading } from "@/components/page-loading";
 
-export default async function LoginPage() {
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<PageLoading className="min-h-screen bg-[#f8faf8]" />}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+async function LoginContent() {
   const authenticated = await isAdminAuthenticated();
   if (authenticated) {
     redirect("/admin/dashboard");

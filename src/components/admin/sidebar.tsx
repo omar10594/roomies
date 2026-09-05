@@ -17,7 +17,7 @@ const navItems = [
   { href: "/admin/roomies", label: "Roomies", icon: Users },
   { href: "/admin/payments", label: "Pagos", icon: CreditCard },
   { href: "/admin/settings", label: "Configuración", icon: Settings },
-];
+] as const;
 
 export default function Sidebar() {
   const pathname = usePathname();
