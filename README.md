@@ -1,46 +1,40 @@
-# roomies
+# Roomies
 
-> App de control de renta para roomies. Administa roomies, rentas, datos de depósito y pagos sin autenticación tradicional — usa códigos de acceso fijos en la base de datos.
+Small shared-rent app on Cloudflare Workers and D1. Existing PINs, screens, tenant URLs and rent calculations are preserved.
 
-## Stack
+## Development and deployment
 
-- **Frontend**: Next.js (App Router) + TypeScript
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Database**: Turso (SQLite edge) + Drizzle ORM
-- **DevContainer**: universal:linux con Docker-in-Docker
+Use Node >=24.22 (Node 26 is supported), then `npm ci`.
 
-## Setup
-
-1. Abre este proyecto en VS Code con la extensión Dev Container
-2. El container se construirá y ejecutará automáticamente
-3. `npm install` se ejecutará en postCreate
-4. Copia `.env.example` a `.env` y configura `TURSO_DATABASE_URL` y `TURSO_AUTH_TOKEN`
-5. Ejecuta `npx autoskill` para instalar skills recomendadas
-
-## Development
-
-```bash
-npm run dev
+```sh
+npm run dev                 # Vinext + local Cloudflare runtime, port 3000
+npm run lint
+npm run typecheck           # TypeScript 7 compiler
+npm test
+npm run build
+npm run start
+npm run deploy
 ```
 
-La app estará disponible en `http://localhost:3000`
+The official cf CLI deploys `cloudflare.config.ts`, including its custom domain. Authenticate with `npx cf auth login`, or privately provision `CLOUDFLARE_API_TOKEN` with Workers script/route edit and D1 access. Wrangler has a separate login for D1 tools. Credentials must never be committed.
 
-## Structure
+Development uses isolated local D1 storage. Initialize it from `schema.sql` using Cloudflare's local database tools. Never run seeds/push against production. Historical Drizzle/Turso tools remain reference material; the migrated runtime uses the `DB` binding, with no Turso URL/token.
 
-```
-roomies/
-├── .devcontainer/
-│   └── devcontainer.json
-├── src/
-├── tests/
-├── README.md
-├── opencode.json
-└── .gitignore
-```
+The TypeScript compiler is version 7; the separately aliased TypeScript 6 API supports ESLint tooling during Microsoft's transition.
 
-## Notes
+## Production operations
 
-- Este proyecto usa un devcontainer para un entorno de desarrollo consistente
-- Docker-in-Docker está habilitado para workflows containerizados
-- El shell por defecto es zsh con Oh My Zsh
-- Ejecuta `npx autoskill` al abrir para obtener skills específicas del proyecto
+- Worker: `roomies`; https://roomies.lopezlopez.com.mx.
+- D1: `roomies`; binding: `DB`. Export privately before structural changes.
+- CPU ceiling: 100 ms/request; subrequests: 20/request.
+- Application/error logs persist; invocation logs and traces are disabled.
+- No Durable Objects, queues, schedules, image service or cache database.
+- Legacy cookie/PIN authorization limitations remain an accepted deferred issue; this migration does not redesign authentication.
+
+The 2026-10-22 migration compared every table's contents with Turso using hashes, checked foreign keys and preserved all records. The original Vercel deployment and Turso database remain recovery references; Vercel Git auto-deploy is disconnected. Avoid writing to both databases after cutover.
+
+The old CNAME is preserved as `_migration-rollback-roomies.lopezlopez.com.mx` (DNS only). Before rollback, export any new D1 writes privately, reattach the domain to the retained Vercel project, remove the Worker domain mapping, restore the CNAME name `roomies`, and verify Vercel. New D1 writes are not replicated back to Turso.
+
+## Dependency audit
+
+The migrated production dependency audit reports zero known vulnerabilities. The full development-tool audit still reports unpatched `braces` advisories in the latest Next ESLint/Vinext build graph. These are build-time tools; the affected packages were not found in the deployed Worker bundle. Build trusted source only, and do not describe the entire development graph as clean.

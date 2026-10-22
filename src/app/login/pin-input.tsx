@@ -19,7 +19,7 @@ export default function PinInput() {
       method: "POST",
       body: formData,
     });
-    const result = await res.json();
+    const result = await res.json() as { success: boolean; message?: string };
     if (result.success) {
       router.replace("/admin/dashboard");
       router.refresh();

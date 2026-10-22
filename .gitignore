@@ -18,6 +18,8 @@ build/
 
 # Local deployment configuration
 .vercel/
+.migration/
+audit-*.json
 
 # Test reports and caches
 coverage/
@@ -69,3 +71,8 @@ Thumbs.db
 *.sqlite3-wal
 *.sqlite3-shm
 /.stoneforge/.worktrees/
+.vinext/
+.cloudflare/
+
+.vercel
+.env*

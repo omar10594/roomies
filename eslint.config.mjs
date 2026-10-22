@@ -7,6 +7,9 @@ export default defineConfig([
   ...nextTypeScript,
   globalIgnores([
     ".next/**",
+    ".cloudflare/**",
+    ".vinext/**",
+    ".migration/**",
     ".agents/**",
     ".cline/**",
     ".codex/**",
