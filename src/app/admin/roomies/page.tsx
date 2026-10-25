@@ -17,8 +17,6 @@ import { Separator } from "@/components/ui/separator";
 import {
   Users,
   UserPlus,
-  Key,
-  Lock,
   Pencil,
   Trash2,
   Check,
@@ -67,7 +65,6 @@ export default function RoomiesPage() {
 
   const totalRoomies = roomies.length;
   const activeRoomies = roomies.filter(r => r.isActive).length;
-  const withCode = roomies.filter(r => r.accessCode).length;
 
   return (
     <div className="min-h-screen bg-[#f8faf8]">
@@ -77,7 +74,7 @@ export default function RoomiesPage() {
           <div>
             <h1 className="text-[32px] font-bold tracking-tight text-[#003633]">Gestión de Roomies</h1>
             <p className="text-[15px] text-muted-foreground mt-1.5">
-              Administra los residentes y accesos de tu propiedad.
+              Administra los residentes de tu propiedad.
             </p>
           </div>
           <Button onClick={() => { setEditingRoomie(null); setShowModal(true); }} className="gap-2 bg-[#003633] hover:bg-[#003633]/90 rounded-xl h-[44px]">
@@ -109,11 +106,6 @@ export default function RoomiesPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Activos</span>
                       <span className="text-sm font-bold text-[#003633]">{activeRoomies}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Con código</span>
-                      <span className="text-sm font-bold text-[#003633]">{withCode}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -162,10 +154,6 @@ export default function RoomiesPage() {
                           </div>
                           <Badge variant="outline" className="text-xs font-semibold">
                             Día {roomie.rentDay}
-                          </Badge>
-                          <Badge variant={roomie.accessCode ? "success" : "warning"} className="text-xs gap-1">
-                            {roomie.accessCode ? <Key className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                            {roomie.accessCode ? "Configurado" : "Pendiente"}
                           </Badge>
 
                           <div className="ml-auto flex items-center gap-1">
@@ -307,15 +295,6 @@ export default function RoomiesPage() {
                   placeholder="5"
                 />
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="accessCode">Código de Acceso Personal</Label>
-              <Input
-                id="accessCode"
-                name="accessCode"
-                defaultValue={editingRoomie?.accessCode || ""}
-                placeholder="Dejar vacío para sin código"
-              />
             </div>
             <div className="flex items-center gap-2">
               <input

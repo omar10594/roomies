@@ -26,7 +26,6 @@ CREATE TABLE `roomies` (
 	`rent_amount` integer NOT NULL,
 	`rent_day` integer NOT NULL,
 	`is_active` integer DEFAULT true NOT NULL,
-	`access_code` text,
 	`created_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	`updated_at` text DEFAULT CURRENT_TIMESTAMP NOT NULL
 , start_date TEXT, grace_days INTEGER NOT NULL DEFAULT 5);
@@ -39,3 +38,6 @@ CREATE TABLE `settings` (
 CREATE UNIQUE INDEX `deposit_accounts_clabe_unique` ON `deposit_accounts` (`clabe`);
 
 CREATE UNIQUE INDEX `roomies_slug_unique` ON `roomies` (`slug`);
+
+CREATE TABLE admin_sessions (token_hash TEXT PRIMARY KEY NOT NULL, expires_at INTEGER NOT NULL);
+CREATE INDEX admin_sessions_expires_at_idx ON admin_sessions(expires_at);

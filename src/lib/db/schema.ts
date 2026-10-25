@@ -10,7 +10,6 @@ export const roomies = sqliteTable("roomies", {
   startDate: text("start_date"),
   graceDays: integer("grace_days").notNull().default(5),
   isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(),
-  accessCode: text("access_code"),
   createdAt: text("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -51,6 +50,11 @@ export const payments = sqliteTable("payments", {
 export const settings = sqliteTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
+});
+
+export const adminSessions = sqliteTable("admin_sessions", {
+  tokenHash: text("token_hash").primaryKey(),
+  expiresAt: integer("expires_at").notNull(),
 });
 
 export type Roomie = typeof roomies.$inferSelect;

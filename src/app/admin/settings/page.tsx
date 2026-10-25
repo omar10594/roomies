@@ -98,7 +98,7 @@ export default function SettingsPage() {
               <h3 className="text-[11px] font-bold tracking-[0.1em] uppercase text-muted-foreground">Código de Acceso del Admin</h3>
             </div>
             <p className="text-xs text-muted-foreground mb-5">
-              Este código es necesario para acceder al panel administrativo. Debe tener entre 4 y 6 dígitos.
+              Este código es necesario para acceder al panel administrativo. Debe tener exactamente 4 dígitos.
             </p>
             <form action={handleAdminCode} className="flex flex-col gap-3 items-end lg:flex-row">
               <div className="w-full min-w-0 flex-1 space-y-2">
@@ -107,8 +107,11 @@ export default function SettingsPage() {
                   id="newCode"
                   name="newCode"
                   type="password"
-                  placeholder="Código de 4-6 dígitos"
-                  pattern="[0-9]{4,6}"
+                  placeholder="Código de 4 dígitos"
+                  pattern="[0-9]{4}"
+                  minLength={4}
+                  maxLength={4}
+                  inputMode="numeric"
                   className="font-mono"
                   required
                 />

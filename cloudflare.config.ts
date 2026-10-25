@@ -24,6 +24,7 @@ export default defineConfig({
     },
     env: {
       ASSETS: bindings.assets(),
+      LOGIN_LIMITER: bindings.rateLimit({ namespace: "2001", simple: { limit: 5, period: 60 } }),
       DB: bindings.d1({ name: "roomies", id: "3b20cf4e-5e82-4564-8d82-0a0c8d109ba7" }),
     },
   }),

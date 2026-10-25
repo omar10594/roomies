@@ -1,7 +1,5 @@
 import { getRoomieBySlug, getPaymentsByRoomie, getDepositAccounts } from "@/app/actions/data";
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
-import RoomiePinLogin from "./roomie-pin-login";
 import RoomieDashboard from "./roomie-dashboard";
 import { Suspense } from "react";
 import { PageLoading } from "@/components/page-loading";
@@ -29,14 +27,6 @@ async function PublicRoomieContent({ params }: PublicRoomiePageProps) {
 
   if (!roomie) {
     notFound();
-  }
-
-  // Check if already verified via cookie
-  const cookieStore = await cookies();
-  const verified = cookieStore.get(`roomie_${slug}`)?.value === "verified";
-
-  if (roomie.accessCode && !verified) {
-    return <RoomiePinLogin slug={roomie.slug} name={roomie.name} />;
   }
 
   const payments = await getPaymentsByRoomie(roomie.id);

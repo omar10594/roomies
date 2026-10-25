@@ -23,7 +23,7 @@ test("D1 preserves rent/payment types and supports the existing CRUD query patte
     await db.insert(schema.roomies).values({
       id: "fixture-tenant", name: "Migration fixture", slug: "migration-fixture",
       rentAmount: 650000, rentDay: 5, graceDays: 3, startDate: "2026-01-01",
-      isActive: true, accessCode: null,
+      isActive: true,
     });
     await db.insert(schema.payments).values({
       id: "fixture-payment", roomieId: "fixture-tenant", amount: 12345,
@@ -32,7 +32,6 @@ test("D1 preserves rent/payment types and supports the existing CRUD query patte
     const tenants = await db.query.roomies.findMany();
     assert.equal(tenants[0].rentAmount, 650000);
     assert.equal(tenants[0].isActive, true);
-    assert.equal(tenants[0].accessCode, null);
     const joined = await db.select({ payment: schema.payments, name: schema.roomies.name })
       .from(schema.payments).leftJoin(schema.roomies, eq(schema.payments.roomieId, schema.roomies.id));
     assert.equal(joined[0].payment.amount, 12345);

@@ -1,12 +1,14 @@
 "use server";
 
 import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth";
 import { roomies, payments, depositAccounts } from "@/lib/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { generateId, toCents } from "@/lib/utils";
 import { getRentSummary } from "@/lib/rent";
 
 export async function getDashboardData() {
+  await requireAdmin();
   const allRoomies = await db.query.roomies.findMany();
   const activeRoomies = allRoomies.filter((r) => r.isActive);
 
@@ -51,6 +53,7 @@ export async function getDashboardData() {
 }
 
 export async function getRoomies() {
+  await requireAdmin();
   return await db.select().from(roomies).orderBy(roomies.name);
 }
 
@@ -58,13 +61,13 @@ export async function createRoomieAction(
   _prevState: { error: string } | null,
   formData: FormData
 ) {
+  await requireAdmin();
   const name = formData.get("name") as string;
   const slug = formData.get("slug") as string;
   const rentAmount = toCents(parseInt(formData.get("rentAmount") as string));
   const rentDay = parseInt(formData.get("rentDay") as string);
   const startDate = formData.get("startDate") as string || null;
   const graceDays = Number((formData.get("graceDays") as string) || 5);
-  const accessCode = formData.get("accessCode") as string || null;
   const isActive = formData.get("isActive") === "on";
 
   if (!name || !slug || !rentAmount || !rentDay) {
@@ -79,7 +82,6 @@ export async function createRoomieAction(
     rentDay,
     startDate: startDate || null,
     graceDays,
-    accessCode: accessCode || null,
     isActive,
   });
 
@@ -90,6 +92,7 @@ export async function updateRoomieAction(
   _prevState: { error: string } | null,
   formData: FormData
 ) {
+  await requireAdmin();
   const id = formData.get("id") as string;
   const name = formData.get("name") as string;
   const slug = formData.get("slug") as string;
@@ -97,7 +100,6 @@ export async function updateRoomieAction(
   const rentDay = parseInt(formData.get("rentDay") as string);
   const startDate = formData.get("startDate") as string || null;
   const graceDays = Number((formData.get("graceDays") as string) || 5);
-  const accessCode = formData.get("accessCode") as string || null;
   const isActive = formData.get("isActive") === "on";
 
   if (!id || !name || !slug || !rentAmount || !rentDay) {
@@ -106,13 +108,14 @@ export async function updateRoomieAction(
 
   await db
     .update(roomies)
-    .set({ name, slug, rentAmount, rentDay, startDate: startDate || null, graceDays, accessCode: accessCode || null, isActive })
+    .set({ name, slug, rentAmount, rentDay, startDate: startDate || null, graceDays, isActive })
     .where(eq(roomies.id, id));
 
   return null;
 }
 
 export async function deleteRoomieAction(roomieId: string) {
+  await requireAdmin();
   await db.delete(payments).where(eq(payments.roomieId, roomieId));
   await db.delete(roomies).where(eq(roomies.id, roomieId));
 }
@@ -121,6 +124,7 @@ export async function recordPaymentAction(
   _prevState: { error: string; success: boolean } | null,
   formData: FormData
 ) {
+  await requireAdmin();
   const roomieId = formData.get("roomieId") as string;
   const amount = toCents(parseInt(formData.get("amount") as string));
   const date = formData.get("date") as string;
@@ -142,6 +146,7 @@ export async function recordPaymentAction(
 }
 
 export async function getPayments() {
+  await requireAdmin();
   return await db
     .select({
       payment: payments,
@@ -157,6 +162,7 @@ export async function updatePaymentAction(
   _prevState: { error: string; success: boolean } | null,
   formData: FormData
 ) {
+  await requireAdmin();
   const id = formData.get("id") as string;
   const roomieId = formData.get("roomieId") as string;
   const amount = toCents(parseInt(formData.get("amount") as string));
@@ -176,6 +182,7 @@ export async function updatePaymentAction(
 }
 
 export async function deletePaymentAction(paymentId: string) {
+  await requireAdmin();
   await db.delete(payments).where(eq(payments.id, paymentId));
 }
 
@@ -187,6 +194,7 @@ export async function createDepositAccountAction(
   _prevState: { error: string } | null,
   formData: FormData
 ) {
+  await requireAdmin();
   const clabe = formData.get("clabe") as string;
   const label = formData.get("label") as string;
 
@@ -208,6 +216,7 @@ export async function updateDepositAccountAction(
   _prevState: { error: string } | null,
   formData: FormData
 ) {
+  await requireAdmin();
   const id = formData.get("id") as string;
   const clabe = formData.get("clabe") as string;
   const label = formData.get("label") as string;
@@ -226,6 +235,7 @@ export async function updateDepositAccountAction(
 }
 
 export async function deleteDepositAccountAction(accountId: string) {
+  await requireAdmin();
   await db.delete(depositAccounts).where(eq(depositAccounts.id, accountId));
 }
 
