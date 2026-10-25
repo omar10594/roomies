@@ -12,7 +12,7 @@
     "start": "vite preview",
     "deploy": "vinext-cloudflare deploy",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "cf workers types && tsc --noEmit",
     "test": "tsx --test \"src/**/*.test.ts\"",
     "kill": "pkill -f 'next dev' || pkill -f 'next start' || echo 'No Next.js server found'",
     "dev:vinext": "vite dev --port 3001",
